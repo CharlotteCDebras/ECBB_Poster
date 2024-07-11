@@ -1,1 +1,30 @@
-Test
+
+
+# P2 - SOCIAL CONTEXT ANALYSIS 
+
+Model.SocialContext <- brm(
+  formula = logOT | cens(OTcensored) ~ Context3Categories * ActivityLevel +
+                                      Gender +
+                                      StandAge + 
+                                      BreastfeedingWomen  + 
+                                      Lot + 
+                                      (1|Batch) + (1|Extraction) + (1|PID),
+  data = DF.Context,
+  family = gaussian(),
+  prior = c(
+    prior(normal(0, 1), class = "Intercept"),
+    prior(normal(0, 1), class = "b"),
+    prior(exponential(1), class = "sd", group = "PID"),
+    prior(exponential(1), class = "sd", group = "Batch"),
+    prior(exponential(1), class = "sd", group = "Extraction")
+  ),
+  chains = 4,
+  core = 4    
+)
+
+
+summary(Model.SocialContext)
+
+post_ModelSocialContext<- posterior_samples(Model.SocialContext)
+conditional_effects(Model.SocialContext)
+
