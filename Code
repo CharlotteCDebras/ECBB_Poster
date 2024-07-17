@@ -1,3 +1,72 @@
+# P1 - FOOTBALL ANALYSIS 
+
+Model1.Football <- brm(
+  formula = logOT | cens(OTcensored) ~  Sex*SampleType  + Date* Sex +  StandAge   + Lot + 
+              (1|Batch) + (1|Extraction) + (1|PID),
+  data = DF.Football,
+  family = gaussian(),
+  prior = c(
+    prior(normal(0, 1), class = "Intercept"),
+    prior(normal(0, 1), class = "b"),
+    prior(exponential(1), class = "sd", group = "PID"),
+    prior(exponential(1), class = "sd", group = "Batch"),
+    prior(exponential(1), class = "sd", group = "Extraction")
+  )
+)
+
+summary(Model1.Football)
+
+conditional_effects(Model1.Football)
+Model1.Football.ConditionalEffect <- conditional_effects(Model1.Football, effects = "Sex:SampleType")
+
+Model1.Football.ConditionalEffect.plot <- plot(Model1.Football.ConditionalEffect, plot = FALSE)[[1]]
+
+Model1.Football.ConditionalEffect.WhiteBackGround <- Model1.Football.ConditionalEffect.plot + 
+  theme_minimal() + 
+  labs(title = "Effet Conditionnel par Genre et Type d'Échantillon", 
+       x = "Sample Type", 
+       y = "Effet Estimé") + 
+  scale_color_manual(values = c("#CC9933", "aquamarine4")) + 
+  geom_point(size = 3) + 
+  theme(panel.background = element_rect(fill = "transparent"), 
+        plot.background = element_rect(fill = "transparent", color = NA), 
+        text = element_text(color = "white"), 
+        plot.title = element_text(color = "white"), 
+        axis.title = element_text(color = "white"), 
+        axis.text = element_text(color = "white"), 
+        legend.text = element_text(color = "white"), 
+        legend.title = element_text(color = "white"), 
+        panel.grid.major = element_line(colour = "darkgrey"), 
+        panel.grid.minor = element_line(colour = "darkgrey", linetype = "dotted")) 
+
+print(Model1.Football.ConditionalEffect.plot)
+
+post_M1Foot<- posterior_samples(Model1.Football)
+post_M1Foot$`b_SexM:SampleTypePostFoot`
+
+
+Model1.Football.PosteriorEffects.WhiteBG <- ggplot(post_M1Foot, aes(x = `b_SexM:SampleTypePostFoot`)) +
+  geom_density(fill = "aquamarine4", alpha = 0.5) +
+  geom_vline(xintercept = 0, linetype = "dashed", color = "black") + 
+  labs(title = "Posterior Distribution of the Effect of Football Game on Oxytocin",
+       x = "Effect",
+       y = "Density") +
+  theme_minimal(base_family = "Arial") +
+  theme(
+    text = element_text(color = "black"),
+    plot.background = element_rect(fill = "transparent", color = NA), 
+    panel.background = element_rect(fill = "transparent", color = NA), 
+    panel.grid.major = element_line(color = "azure4", size = 0.15), 
+    panel.grid.minor = element_line(color = "azure4", size = 0.15), 
+    plot.title = element_text(size = 14, face = "bold"),
+    axis.title = element_text(size = 12),
+    axis.text = element_text(size = 10),
+    legend.background = element_rect(fill = "transparent"),
+    legend.text = element_text(color = "black") 
+  )
+
+# Affichage du graphique
+print(Model1.Football.PosteriorEffects.WhiteBG)
 
 
 # P2 - SOCIAL CONTEXT ANALYSIS 
@@ -28,3 +97,27 @@ summary(Model.SocialContext)
 post_ModelSocialContext<- posterior_samples(Model.SocialContext)
 conditional_effects(Model.SocialContext)
 
+
+post_Model.SocialContext<- posterior_samples(Model.SocialContext)
+
+post_samplesModel.SocialContextintercept <- posterior_samples(Model.SocialContext, pars = "b_Intercept")
+post_samplesModel.SocialContext <- posterior_samples(Model.SocialContext, pars = "b_Context3Categories")
+
+Model.SocialContext.PosteriorEffects.BlackBG <-ggplot() +
+  geom_density(aes(x = post_samplesModel.SocialContext$b_Context3CategoriesC2, fill = "Context 2"), alpha = 0.5) +
+  geom_density(aes(x = post_samplesModel.SocialContext$b_Context3CategoriesC3, fill = "Context 3"), alpha = 0.5) +
+  geom_vline(xintercept = 0, linetype = "dashed", color = "ivory") +
+  scale_fill_manual(values = c("navajowhite3", "lightsteelblue3")) +
+  labs(title = "Posterior distribution of the relative effects of Context",
+       x = "Effect",
+       y = "Density") +
+  theme_minimal() +
+  theme(legend.title = element_blank(),
+        text = element_text(color = "white"), 
+        plot.background = element_rect(fill = NA, color = NA), 
+        panel.background = element_rect(fill = NA, color = NA), 
+            panel.grid.major = element_line(color = "azure4", size = 0.15),
+    panel.grid.minor = element_line(color = "azure4", size = 0.15), 
+  plot.title = element_text(size = 14, face = "bold"),
+        axis.title = element_text(color = "white"),
+        axis.text = element_text(color = "white")) 
